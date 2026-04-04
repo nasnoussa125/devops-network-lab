@@ -16,7 +16,7 @@ Le système vérifie chaque minute la latence entre les serveurs. Si une panne s
 ![Jenkins](Capture_Jenkins.png)
 
 ### Monitoring Prometheus/Grafana
-![Grafana](Capture_Grapfana.jpg)
+![Grafana](Capture_Grapfana.png)
 
 ### État des conteneurs
-![Docker](Terminal_Docker.png)
+![Docker](Terminal_docker.png)
