@@ -13,3 +13,5 @@ Ce projet met en place une infrastructure de surveillance automatisée pour un p
 Le système vérifie chaque minute la latence entre les serveurs. Si une panne survient, Jenkins lève une alerte rouge.
 
 ![Screenshot de Grafana](lien_vers_ta_photo)
+![Jenkins Pipeline](Capture_Jenkins.png)
+![Grafana Dashboard](Capture_Grafana.jpg)
