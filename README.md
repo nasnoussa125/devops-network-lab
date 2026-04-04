@@ -13,10 +13,10 @@ Ce projet met en place une infrastructure de surveillance automatisée pour un p
 Le système vérifie chaque minute la latence entre les serveurs. Si une panne survient, Jenkins lève une alerte rouge.
 
 ### Pipeline de tests Jenkins
-![Jenkins]Capture_Jenkins.png)
+![Jenkins](Capture_Jenkins.png)
 
 ### Monitoring Prometheus/Grafana
-![Grafana](Capture_Grafana.jpg)
+![Grafana](Capture_Grapfana.jpg)
 
 ### État des conteneurs
 ![Docker](Terminal_Docker.png)
