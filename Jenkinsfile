@@ -27,6 +27,26 @@ pipeline {
         stage('Deploy Stack') {
             steps {
                 sh '''
+                    if [ ! -f prometheus.yml ]; then
+                        cat > prometheus.yml << 'EOF'
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          env: 'lab'
+          role: 'monitored-server'
+EOF
+                    fi
+                    
                     docker-compose down -v || true
                     docker container prune -f || true
                     docker-compose up -d
