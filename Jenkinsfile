@@ -37,7 +37,8 @@ pipeline {
 
     post {
         always {
-            node {
+            
+            script {
                 archiveArtifacts artifacts: 'results/**', allowEmptyArchive: true
                 sh 'docker compose down'
             }
