@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.4.2 (Python 3.13.14 on win32)" generated="2026-06-14T14:07:37.079455" rpa="false" schemaversion="5">
+<suite id="s1" name="Verif Reseau" source="C:\Users\NasNousxxXx\source\repos\devops-network-lab\verif_reseau.robot">
+<test id="s1-t1" name="Tester La Connexion Au Serveur" line="5">
+<kw name="Run" owner="OperatingSystem">
+<msg time="2026-06-14T14:07:37.154586" level="INFO">Running command 'ping -n 2 192.168.1.10 2&gt;&amp;1'.</msg>
+<msg time="2026-06-14T14:07:38.202695" level="INFO">${result} = 
+Envoi d’une requête 'Ping'  192.168.1.10 avec 32 octets de données :
+Réponse de 192.168.1.10 : octets=32 temps=1 ms TTL=64
+Réponse de 192.168.1.10 : octets=32 temps=3 ms TTL=64
+
+Statistiques Ping pou...</msg>
+<var>${result}</var>
+<arg>ping -n 2 192.168.1.10</arg>
+<doc>_This keyword is considered deprecated. Use the
+[http://robotframework.org/robotframework/latest/libraries/Process.html|
+Process] library instead._</doc>
+<status status="PASS" start="2026-06-14T14:07:37.129290" elapsed="1.073501"/>
+</kw>
+<kw name="Should Contain" owner="BuiltIn">
+<arg>${result}</arg>
+<arg>octets</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" start="2026-06-14T14:07:38.203408" elapsed="0.001549"/>
+</kw>
+<doc>Vérifie si le serveur .10 répond au ping</doc>
+<status status="PASS" start="2026-06-14T14:07:37.128152" elapsed="1.077358"/>
+</test>
+<status status="PASS" start="2026-06-14T14:07:37.081302" elapsed="1.125558"/>
+</suite>
+<statistics>
+<total>
+<stat pass="1" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat name="Verif Reseau" id="s1" pass="1" fail="0" skip="0">Verif Reseau</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
