@@ -11,7 +11,6 @@ pipeline {
     }
 
     stages {
-
         stage('Setup Tools') {
             steps {
                 sh '''
@@ -26,10 +25,12 @@ pipeline {
 
         stage('Deploy Stack') {
             steps {
-                sh '''
-                    GRAFANA_ADMIN_PASSWORD=admin docker-compose up -d
-                    sleep 15
-                '''
+                dir('infrastructure/docker') {
+                    withCredentials([string(credentialsId: 'grafana-admin-password', variable: 'GRAFANA_PASS')]) {
+                        sh 'docker-compose up -d'
+                        sh 'sleep 15'
+                    }
+                }
             }
         }
 
@@ -48,8 +49,10 @@ pipeline {
 
     post {
         always {
+            dir('infrastructure/docker') {
+                sh 'docker-compose down'
+            }
             archiveArtifacts artifacts: 'results/**', allowEmptyArchive: true
-            sh 'docker-compose down'
         }
         success {
             echo 'Pipeline OK - stack up, tests IVVQ passes.'
