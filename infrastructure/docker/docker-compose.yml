@@ -22,7 +22,7 @@ services:
     restart: always
 
   jenkins:
-    image: jenkins/jenkins:lts
+    build: .
     container_name: srv-cicd-jenkins
     user: root
     ports:
@@ -41,8 +41,8 @@ services:
     ports:
       - "9090:9090"
     volumes:
-    - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-    - prometheus_data:/prometheus
+      - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
     networks:
       - production_network
     restart: always
