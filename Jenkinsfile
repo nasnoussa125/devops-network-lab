@@ -27,21 +27,32 @@ pipeline {
         stage('Deploy Stack') {
             steps {
                 sh '''
+                    cat > prometheus.yml << 'EOF'
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          env: 'lab'
+          role: 'monitored-server'
+EOF
                     
                     docker-compose down -v || true
                     docker container prune -f || true
-                    
-                    
                     docker-compose up -d
-                    
-                   
-                    sleep 30
-                    
-                   
+                    sleep 40
                     docker-compose ps
                 '''
             }
-}
+        }
 
         stage('Verification') {
             steps {
@@ -68,10 +79,10 @@ pipeline {
             archiveArtifacts artifacts: 'results/**', allowEmptyArchive: true
         }
         success {
-            echo 'Pipeline OK - stack up, tests IVVQ passed.'
+            echo 'Build successful - all tests passed'
         }
         failure {
-            echo 'Pipeline Failed - see Robot Framework reports in artifacts.'
+            echo 'Build failed - check Robot Framework reports'
         }
     }
 }
