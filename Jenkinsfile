@@ -11,24 +11,9 @@ pipeline {
         stage('Setup Tools') {
             steps {
                 sh '''
-                    # Détecter le gestionnaire de paquets disponible
-                    if command -v pip3 > /dev/null 2>&1; then
-                        PIP=pip3
-                    elif command -v pip > /dev/null 2>&1; then
-                        PIP=pip
-                    elif command -v python3 > /dev/null 2>&1; then
-                        python3 -m ensurepip --upgrade 2>/dev/null || true
-                        PIP="python3 -m pip"
-                    else
-                        echo "Python non disponible, installation..."
-                        apt-get update -qq && apt-get install -y -qq python3 python3-pip
-                        PIP=pip3
-                    fi
-
-                    echo "Utilisation de : $PIP"
-                    $PIP install --quiet --break-system-packages \
-                        robotframework robotframework-requests 2>/dev/null \
-                    || $PIP install --quiet \
+                    apt-get update -qq
+                    apt-get install -y -qq python3-pip
+                    pip3 install --quiet --break-system-packages \
                         robotframework robotframework-requests
                 '''
             }
@@ -39,33 +24,22 @@ pipeline {
                 withCredentials([string(credentialsId: 'grafana-admin-password', variable: 'GRAFANA_PASS')]) {
                     sh '''
                         export GRAFANA_ADMIN_PASSWORD=$GRAFANA_PASS
-
-                        # Supporter docker compose (v2) ET docker-compose (v1)
-                        if docker compose version > /dev/null 2>&1; then
-                            COMPOSE="docker compose"
-                        else
-                            COMPOSE="docker-compose"
-                        fi
-
-                        echo "Compose disponible : $COMPOSE"
-                        $COMPOSE up -d
+                        docker-compose up -d
                         sleep 15
                     '''
                 }
             }
         }
 
-        stage('Tests') {
+        stage('Verification') {
             steps {
-                sh '''
-                    if command -v python3 > /dev/null 2>&1; then
-                        python3 -m robot --outputdir results \
-                            tests/verification.robot tests/validation.robot
-                    else
-                        robot --outputdir results \
-                            tests/verification.robot tests/validation.robot
-                    fi
-                '''
+                sh 'python3 -m robot --outputdir results/verification tests/verification.robot'
+            }
+        }
+
+        stage('Validation') {
+            steps {
+                sh 'python3 -m robot --outputdir results/validation tests/validation.robot'
             }
         }
     }
@@ -73,19 +47,13 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: 'results/**', allowEmptyArchive: true
-            sh '''
-                if docker compose version > /dev/null 2>&1; then
-                    docker compose down
-                else
-                    docker-compose down
-                fi
-            '''
+            sh 'docker-compose down'
         }
         success {
-            echo '✅ Pipeline OK : stack up, tests IVVQ passés.'
+            echo 'Pipeline OK - stack up, tests IVVQ passes.'
         }
         failure {
-            echo '❌ Échec : voir les artefacts Robot Framework.'
+            echo 'Echec - voir les artefacts Robot Framework dans les logs.'
         }
     }
 }
