@@ -1,28 +1,13 @@
-# Secrets
 .env
-
-# Robot Framework results
+.env.local
 results/
-output.xml
-log.html
-report.html
-
-# Ansible
-*.retry
-ansible/.vagrant/
-
-# Python
-__pycache__/
 *.pyc
-*.pyo
+__pycache__/
 .pytest_cache/
-
-# OS
+.robot_cache/
+*.log
 .DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.suo
-*.user
+jenkins_data/
+*.swp
+*.swo
+*~
