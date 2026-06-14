@@ -1,19 +1,22 @@
 pipeline {
-    agent {
-        docker { 
-            image 'python:3.11-slim' 
-            
-            args '-u root' 
-        }
-    }
+    agent any
     stages {
-        stage('Install Dependencies') {
+        stage('Deploy Infrastructure') {
             steps {
-                sh 'pip install robotframework'
+                echo 'Démarrage de la stack Docker Compose...'
             }
         }
         stage('IVVQ Validation') {
+            agent {
+                docker { 
+                    image 'python:3.11-slim' 
+                    args '-v /var/run/docker.sock:/var/run/docker.sock' 
+                }
+            }
             steps {
+                
+                sh 'pip install robotframework'
+                
                 sh 'python -m robot verif_reseau.robot'
             }
         }
