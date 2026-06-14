@@ -16,7 +16,7 @@ pipeline {
             steps {
                 sh '''
                     apt-get update -qq
-                    apt-get install -y -qq --no-install-recommends python3-pip
+                    apt-get install -y -qq --no-install-recommends python3-pip docker-compose
                     pip3 install --quiet --break-system-packages \
                         --root-user-action=ignore \
                         robotframework robotframework-requests
@@ -27,10 +27,10 @@ pipeline {
         stage('Deploy Stack') {
             steps {
                 sh '''
-                    docker compose down || true
-                    docker compose up -d
+                    docker-compose down || true
+                    docker-compose up -d
                     sleep 30
-                    docker compose ps
+                    docker-compose ps
                 '''
             }
         }
@@ -56,30 +56,14 @@ pipeline {
 
     post {
         always {
-            sh 'docker compose down || true'
+            sh 'docker-compose down || true'
             archiveArtifacts artifacts: 'results/**', allowEmptyArchive: true
-            publishHTML([
-                allowMissing: false,
-                alwaysLinkToLastBuild: true,
-                keepAll: true,
-                reportDir: 'results/verification',
-                reportFiles: 'report.html',
-                reportName: 'Verification Report'
-            ])
-            publishHTML([
-                allowMissing: false,
-                alwaysLinkToLastBuild: true,
-                keepAll: true,
-                reportDir: 'results/validation',
-                reportFiles: 'report.html',
-                reportName: 'Validation Report'
-            ])
         }
         success {
-            echo 'Pipeline OK - stack up, tests IVVQ passed.'
+            echo '✅ Pipeline OK - stack up, tests IVVQ passed.'
         }
         failure {
-            echo 'Pipeline Failed - see Robot Framework reports in artifacts.'
+            echo '❌ Pipeline Failed - see Robot Framework reports in artifacts.'
         }
     }
 }
