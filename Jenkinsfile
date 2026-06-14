@@ -3,11 +3,12 @@ pipeline {
 
     options {
         timestamps()
-        timeout(time: 15, unit: 'MINUTES')
+        timeout(time: 30, unit: 'MINUTES')
     }
 
     environment {
         DEBIAN_FRONTEND = 'noninteractive'
+        GRAFANA_ADMIN_PASSWORD = credentials('grafana-admin-password')
     }
 
     stages {
@@ -25,40 +26,60 @@ pipeline {
 
         stage('Deploy Stack') {
             steps {
-                dir('infrastructure/docker') {
-                    withCredentials([string(credentialsId: 'grafana-admin-password', variable: 'GRAFANA_PASS')]) {
-                        sh 'docker-compose up -d'
-                        sh 'sleep 15'
-                    }
-                }
+                sh '''
+                    docker compose down || true
+                    docker compose up -d
+                    sleep 30
+                    docker compose ps
+                '''
             }
         }
 
         stage('Verification') {
             steps {
-                sh 'python3 -m robot --outputdir results/verification tests/verification.robot'
+                sh '''
+                    mkdir -p results/verification
+                    python3 -m robot --outputdir results/verification tests/verification.robot
+                '''
             }
         }
 
         stage('Validation') {
             steps {
-                sh 'python3 -m robot --outputdir results/validation tests/validation.robot'
+                sh '''
+                    mkdir -p results/validation
+                    python3 -m robot --outputdir results/validation tests/validation.robot
+                '''
             }
         }
     }
 
     post {
         always {
-            dir('infrastructure/docker') {
-                sh 'docker-compose down'
-            }
+            sh 'docker compose down || true'
             archiveArtifacts artifacts: 'results/**', allowEmptyArchive: true
+            publishHTML([
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'results/verification',
+                reportFiles: 'report.html',
+                reportName: 'Verification Report'
+            ])
+            publishHTML([
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'results/validation',
+                reportFiles: 'report.html',
+                reportName: 'Validation Report'
+            ])
         }
         success {
-            echo 'Pipeline OK - stack up, tests IVVQ passes.'
+            echo 'Pipeline OK - stack up, tests IVVQ passed.'
         }
         failure {
-            echo 'Echec - voir les artefacts Robot Framework dans les logs.'
+            echo 'Pipeline Failed - see Robot Framework reports in artifacts.'
         }
     }
 }
