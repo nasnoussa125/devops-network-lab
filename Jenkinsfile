@@ -6,14 +6,19 @@ pipeline {
         timeout(time: 15, unit: 'MINUTES')
     }
 
+    environment {
+        DEBIAN_FRONTEND = 'noninteractive'
+    }
+
     stages {
 
         stage('Setup Tools') {
             steps {
                 sh '''
                     apt-get update -qq
-                    apt-get install -y -qq python3-pip
+                    apt-get install -y -qq --no-install-recommends python3-pip
                     pip3 install --quiet --break-system-packages \
+                        --root-user-action=ignore \
                         robotframework robotframework-requests
                 '''
             }
@@ -21,13 +26,10 @@ pipeline {
 
         stage('Deploy Stack') {
             steps {
-                withCredentials([string(credentialsId: 'grafana-admin-password', variable: 'GRAFANA_PASS')]) {
-                    sh '''
-                        export GRAFANA_ADMIN_PASSWORD=$GRAFANA_PASS
-                        docker-compose up -d
-                        sleep 15
-                    '''
-                }
+                sh '''
+                    GRAFANA_ADMIN_PASSWORD=admin docker-compose up -d
+                    sleep 15
+                '''
             }
         }
 
