@@ -26,8 +26,9 @@ pipeline {
 
         stage('Deploy Stack') {
             steps {
-                sh '''
-                    cat > prometheus.yml << 'EOF'
+                dir('infrastructure/docker') {
+                    sh '''
+                        cat <<EOF > prometheus.yml
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
@@ -40,42 +41,37 @@ scrape_configs:
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['node-exporter:9100']
-        labels:
-          env: 'lab'
-          role: 'monitored-server'
+    labels:
+      env: 'lab'
+      role: 'monitored-server'
 EOF
-                    
-                    docker-compose down -v || true
-                    docker container prune -f || true
-                    docker-compose up -d
-                    sleep 40
-                    docker-compose ps
-                '''
+                        docker-compose down -v || true
+                        docker container prune -f || true
+                        docker-compose up -d
+                        sleep 40
+                    '''
+                }
             }
         }
 
         stage('Verification') {
             steps {
-                sh '''
-                    mkdir -p results/verification
-                    python3 -m robot --outputdir results/verification tests/verification.robot
-                '''
+                sh 'python3 -m robot --outputdir results/verification tests/verification.robot'
             }
         }
 
         stage('Validation') {
             steps {
-                sh '''
-                    mkdir -p results/validation
-                    python3 -m robot --outputdir results/validation tests/validation.robot
-                '''
+                sh 'python3 -m robot --outputdir results/validation tests/validation.robot'
             }
         }
     }
 
     post {
         always {
-            sh 'docker-compose down || true'
+            dir('infrastructure/docker') {
+                sh 'docker-compose down || true'
+            }
             archiveArtifacts artifacts: 'results/**', allowEmptyArchive: true
         }
         success {
