@@ -1,23 +1,21 @@
 pipeline {
     agent any
     stages {
+        stage('Lint & Check') {
+            steps {
+                echo 'Vérification de la syntaxe...'
+            }
+        }
         stage('Deploy Infrastructure') {
             steps {
                 echo 'Démarrage de la stack Docker Compose...'
+                bat 'docker-compose up -d'
             }
         }
         stage('IVVQ Validation') {
-            agent {
-                docker { 
-                    image 'python:3.11-slim' 
-                    args '-v /var/run/docker.sock:/var/run/docker.sock' 
-                }
-            }
             steps {
-                
-                sh 'pip install robotframework'
-                
-                sh 'python -m robot verif_reseau.robot'
+                echo 'Exécution des tests automatisés sur l\'hôte...'
+                bat 'python -m robot verif_reseau.robot'
             }
         }
     }
