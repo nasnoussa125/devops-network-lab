@@ -27,13 +27,21 @@ pipeline {
         stage('Deploy Stack') {
             steps {
                 sh '''
-                    docker-compose down || true
+                    
+                    docker-compose down -v || true
+                    docker container prune -f || true
+                    
+                    
                     docker-compose up -d
+                    
+                   
                     sleep 30
+                    
+                   
                     docker-compose ps
                 '''
             }
-        }
+}
 
         stage('Verification') {
             steps {
@@ -60,10 +68,10 @@ pipeline {
             archiveArtifacts artifacts: 'results/**', allowEmptyArchive: true
         }
         success {
-            echo '✅ Pipeline OK - stack up, tests IVVQ passed.'
+            echo 'Pipeline OK - stack up, tests IVVQ passed.'
         }
         failure {
-            echo '❌ Pipeline Failed - see Robot Framework reports in artifacts.'
+            echo 'Pipeline Failed - see Robot Framework reports in artifacts.'
         }
     }
 }
