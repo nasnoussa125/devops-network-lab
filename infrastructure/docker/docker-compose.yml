@@ -41,8 +41,8 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ../prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
+    - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    - prometheus_data:/prometheus
     networks:
       - production_network
     restart: always

@@ -5,7 +5,7 @@ pipeline {
         stage('Deploy Infrastructure') {
             steps {
                 echo 'Démarrage de la stack via le dossier docker...'
-                dir('docker') {
+                dir('infrastructure/docker') {
                     sh 'docker compose up -d'
                 }
             }
