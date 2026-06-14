@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=none
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+metadata:
+  template_name: enterprise-network-lab-topology
+  template_author: DevOps-Engineer
+  template_version: '1.0'
+
+description: Modélisation abstraite de l'infrastructure multi-VLAN et serveurs d'entreprise.
+
+topology_template:
+  node_templates:
+    
+    lan_network:
+      type: tosca.nodes.network.Network
+      properties:
+        network_name: LAN_INTERNE
+        cidr: 192.168.10.0/24
+
+    dmz_network:
+      type: tosca.nodes.network.Network
+      properties:
+        network_name: DMZ_SERVEURS
+        cidr: 192.168.20.0/24
+
+   
+    srv_linux_app:
+      type: tosca.nodes.Compute
+      properties:
+        num_cpus: 2
+        mem_size: 4096 MB
+        os_family: linux
+      requirements:
+        - network: dmz_network 
+
+    srv_windows_ad:
+      type: tosca.nodes.Compute
+      properties:
+        num_cpus: 2
+        mem_size: 8192 MB
+        os_family: windows
+      requirements:
+        - network: lan_network 
