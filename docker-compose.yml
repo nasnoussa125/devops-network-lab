@@ -8,6 +8,8 @@ services:
       - /tmp/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
+    networks:
+      - production_network
 
   grafana:
     image: grafana/grafana
@@ -16,3 +18,9 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
+    networks:
+      - production_network
+
+networks:
+  production_network:
+    driver: bridge
