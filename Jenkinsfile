@@ -3,8 +3,11 @@ pipeline {
     stages {
         stage('Install Dependencies') {
             steps {
-                // Installe Python et Robot dans l'agent Jenkins à la volée
-                sh 'pip install robotframework'
+                
+                sh 'apt-get update && apt-get install -y python3-pip python3-venv'
+                
+                sh 'python3 -m venv venv'
+                sh './venv/bin/pip install robotframework'
             }
         }
         stage('Lint & Check') {
@@ -15,14 +18,14 @@ pipeline {
         stage('Deploy Infrastructure') {
             steps {
                 echo 'Démarrage de la stack Docker Compose...'
-             
             }
         }
         stage('IVVQ Validation') {
             steps {
                 echo 'Exécution des tests automatisés...'
-                sh 'python -m robot verif_reseau.robot'
+                
+                sh './venv/bin/robot verif_reseau.robot'
             }
         }
     }
-} 
+}
