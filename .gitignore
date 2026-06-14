@@ -1,25 +1,28 @@
-.vs/
-[Dd]ebug/
-[Rr]elease/
+# Secrets
+.env
+
+# Robot Framework results
+results/
+output.xml
+log.html
+report.html
+
+# Ansible
+*.retry
+ansible/.vagrant/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
 *.suo
 *.user
-*.userosscache
-*.sln.docstates
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-
-.terraform/
-*.tfstate
-*.tfstate.backup
-*.tfvars
-*.tfvars.json
-
-*.retry
-.env
-*.pem
-*.key
-ansible/inventory/secrets.yml
-
-*.log
-*.tmp

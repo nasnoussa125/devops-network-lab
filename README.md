@@ -1,107 +1,124 @@
-```markdown
 # DevOps Network Lab
 
-A comprehensive local laboratory designed to simulate enterprise infrastructure deployment, automation, monitoring, and validation.
+A local DevOps laboratory simulating a full **IVVQ cycle** (Integration, Verification, Validation, Qualification) for a network monitoring infrastructure.
 
-## Architecture Overview
+## Architecture
 
-The laboratory environment consists of the following architectural blocks:
-- **Service Modeling:** TOSCA Blueprint describing the global infrastructure topology.
-- **Configuration Management:** Ansible inventory structures for node configuration management.
-- **Containerized Infrastructure:** A multi-container Docker Compose stack isolating production services, CI/CD automation engines, and monitoring solutions.
-- **Validation Suite:** Automated IVVQ (Integration, Verification, Validation, and Qualification) compliance frameworks.
+```mermaid
+flowchart LR
+    subgraph CI["Jenkins CI/CD"]
+        A[Checkout] --> B[Install deps]
+        B --> C[Lint]
+        C --> D[docker compose up]
+        D --> E[Verification Tests\nEXG-01 to EXG-03]
+        E --> F[Validation Tests\nEXG-04 to EXG-05]
+        F --> G[Archive results\nQualification EXG-06]
+    end
 
-## Repository Structure
+    subgraph Stack["Docker Stack - monitoring network"]
+        P[Prometheus :9090]
+        G2[Grafana :3000]
+        NE[node-exporter :9100]
+    end
 
-```text
-devops-network-lab/
-├── ansible/
-│   └── inventory/
-│       └── hosts.ini
-├── infrastructure/
-│   ├── docker/
-│   │   └── docker-compose.yml
-│   └── monitoring/
-│       └── prometheus.yml
-├── ivvq/
-│   └── scripts/
-│       ├── run_local_tests.bat
-│       └── run_tests.sh
-└── tosca/
-    └── blueprints/
-        └── topology.yaml
+    subgraph Target["Remote Server 192.168.1.10"]
+        NER[node-exporter :9100\ndeployed via Ansible]
+    end
 
+    D --> Stack
+    P -- scrape --> NE
+    P -- scrape --> NER
+    G2 -- datasource --> P
+    E -- API checks --> P
+    E -- API checks --> NE
+    F -- API checks --> G2
+    F -- PromQL --> P
+
+    Ansible[Ansible Playbook] -.installs.-> NER
 ```
 
-## Prerequisites
+## Stack
 
-* Docker Desktop (with active engine)
-* Git Client
-* Operating System: Windows (for local batch validation) or Linux/macOS (for shell evaluation)
+| Tool | Role |
+|---|---|
+| **Ansible** | Installs and configures `node_exporter` on the target server |
+| **Docker / docker compose** | Deploys the monitoring stack (Prometheus, Grafana, node-exporter) |
+| **Prometheus** | Collects system metrics via periodic scraping |
+| **Grafana** | Visualizes metrics through dashboards |
+| **Robot Framework** | Automated IVVQ tests (verification + validation) |
+| **Jenkins** | CI/CD orchestration: deploy → test → archive |
+| **TOSCA** | Blueprint describing the stack topology for orchestration-ready documentation |
 
-## Getting Started
+## IVVQ Approach
 
-### 1. Environment Configuration
+| Step | In this project |
+|---|---|
+| **Integration** | `docker compose up` assembles Prometheus, Grafana and node-exporter into a coherent system |
+| **Verification** | `tests/verification.robot` — does each component work as specified? (EXG-01 to EXG-03) |
+| **Validation** | `tests/validation.robot` — does the system meet the operational need? (EXG-04, EXG-05) |
+| **Qualification** | Jenkins archives test results as a traceable, reproducible proof of conformance (EXG-06) |
 
-In compliance with SecOps best practices, sensitive credentials are decoupled from the source code. Create a `.env` file within the `infrastructure/docker/` directory before initialization:
+Full traceability matrix: [`ivvq/requirements_traceability.md`](ivvq/requirements_traceability.md)
 
-```ini
-DB_PASSWORD=YourSecurePasswordHere
-
-```
-
-### 2. Infrastructure Deployment
-
-Navigate to the orchestration directory and initialize the containerized environment in the background:
+## Quick Start
 
 ```bash
-cd infrastructure/docker
+
+cd ansible
+ansible-playbook -i inventory.ini install_node_exporter.yml
+
+
+cd ..
+cp .env.example .env
+
+
+
 docker compose up -d
 
+
+pip install robotframework robotframework-requests
+python3 -m robot tests/verification.robot tests/validation.robot
+
+
+python3 ivvq/scripts/validate_stack.py
 ```
 
-### 3. Exposed Services and Network Ports
+## Jenkins Pipeline
 
-Once deployment is complete, services are accessible on the following host endpoints:
+The `Jenkinsfile` automatically runs:
+1. Checkout
+2. Dependency installation (robotframework, robotframework-requests)
+3. Lint (Robot Framework `--dryrun`)
+4. Stack deployment (`docker compose up -d`)
+5. **Verification tests** — EXG-01 to EXG-03
+6. **Validation tests** — EXG-04, EXG-05
+7. Results archiving — EXG-06 (qualification proof)
+8. Cleanup (`docker compose down`)
 
-| Component | Service | URL / Host Port | Architectural Note |
-| --- | --- | --- | --- |
-| **Nginx** | Web Server (Prod) | http://localhost:8080 | Standard port 80 isolated inside container |
-| **Jenkins** | CI/CD Engine | http://localhost:8081 | Automated quality assurance workshop |
-| **Prometheus** | Metrics Collector | http://localhost:9090 | Scrapes infrastructure and application targets |
-| **Grafana** | Visualization Dashboards | http://localhost:3000 | Telemetry dashboards (Default: admin/admin) |
-| **PostgreSQL** | Database Engine | localhost:5433 | Mapped to 5433 to avoid host allocation conflicts |
+> **Jenkins credential required**: create a secret text credential named `grafana-admin-password` in Jenkins before running the pipeline.
 
-## Automated IVVQ Testing
+## Security
 
-The project incorporates automated test scripts to validate infrastructure state, syntactical compliance, and security posture.
+- Grafana admin password injected via environment variable (`.env`, not versioned)
+- `node_exporter` runs under a dedicated system user with no login shell
+- `.gitignore` excludes secrets, test reports and temporary Ansible files
 
-### Local Windows Environment Validation
+## Screenshots
 
-Execute the batch test suite from the root directory:
+### Jenkins Pipeline
+![Jenkins](Capture_Jenkins.png)
 
-```cmd
-ivvq\scripts\run_local_tests.bat
+### Grafana Dashboard
+![Grafana](Capture_Grapfana.png)
 
-```
+### Docker Containers
+![Docker](Terminal_docker.png)
 
-### Linux / Continuous Integration Pipeline Validation
+## Known Limitations & Improvement Roadmap
 
-Execute the shell test suite:
-
-```bash
-chmod +x ivvq/scripts/run_tests.sh
-ivvq/scripts/run_tests.sh
-
-```
-
-### Test Specifications
-
-* **[TEST-ANS-01]**: Validates the structural presence and integrity of the Ansible inventory database.
-* **[TEST-TSC-01]**: Conducts a static check on the OASIS TOSCA blueprint structure.
-* **[TEST-DKR-01]**: Verifies the definitions and requirements within the multi-container configuration.
-* **[TEST-SEC-01]**: Executes an operational security (OPSEC) scan to block hardcoded database secrets in the deployment files.
-
-```
-
-```
+| Limitation | Improvement |
+|---|---|
+| No Alertmanager | Add Alertmanager with routing rules to cover EXG-07 (active alerting) |
+| Static Ansible inventory | Replace with dynamic inventory (AWS/GCP plugin) in a cloud environment |
+| No TLS between services | Add TLS termination via reverse proxy (nginx/Traefik) for production |
+| Single environment | Add separate inventories and `.env` files per environment (dev/staging/prod) |
