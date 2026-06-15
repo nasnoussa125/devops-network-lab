@@ -1,0 +1,24 @@
+.env
+.env.local
+results/
+*.pyc
+__pycache__/
+.pytest_cache/
+.robot_cache/
+*.log
+.DS_Store
+jenkins_data/
+*.swp
+*.swo
+*~
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Artefacts de run Robot Framework laissés à la racine par erreur
+/output.xml
+/log.html
+/report.html

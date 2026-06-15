@@ -1,0 +1,51 @@
+! =====================================================================
+! Configuration de base - Switch coeur (switch-core)
+! Segmentation VLAN correspondant a la topologie modelisee en TOSCA
+! (tosca/blueprints/topology.yaml) :
+!   - VLAN 10 LAN_INTERNE   -> 192.168.10.0/24 (cote LAN, srv Windows AD)
+!   - VLAN 20 DMZ_SERVEURS  -> 192.168.20.0/24 (cote DMZ, srv Linux app)
+! =====================================================================
+
+hostname switch-core
+!
+ip routing
+!
+! --- Declaration des VLANs ---
+vlan 10
+ name LAN_INTERNE
+!
+vlan 20
+ name DMZ_SERVEURS
+!
+! --- Interfaces virtuelles (passerelles inter-VLAN) ---
+interface Vlan10
+ description Passerelle LAN_INTERNE
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+!
+interface Vlan20
+ description Passerelle DMZ_SERVEURS
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+!
+! --- Ports d'acces : poste(s) cote LAN interne ---
+interface range GigabitEthernet0/1-12
+ description Acces LAN_INTERNE - postes utilisateurs
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+!
+! --- Ports d'acces : serveurs cote DMZ ---
+interface range GigabitEthernet0/13-20
+ description Acces DMZ_SERVEURS - serveurs applicatifs
+ switchport mode access
+ switchport access vlan 20
+ spanning-tree portfast
+!
+! --- Port trunk : liaison vers switch de distribution / pare-feu ---
+interface GigabitEthernet0/24
+ description Trunk vers pare-feu / distribution
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20
+!
+end

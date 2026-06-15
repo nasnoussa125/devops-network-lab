@@ -1,0 +1,13 @@
+---
+# Playbook principal du lab : point d'entrée unique qui orchestre les
+# playbooks unitaires. Pour l'instant, un seul playbook est inclus
+# (installation/configuration de node_exporter sur les serveurs cibles).
+#
+# Usage :
+#   ansible-playbook playbooks/site.yml -i ../inventory.ini
+#
+# Évolution prévue : ajouter ici les futurs playbooks (durcissement OS,
+# déploiement d'agents de supervision additionnels, etc.) au fur et à
+# mesure qu'ils seront écrits.
+
+- import_playbook: ../install_node_exporter.yml

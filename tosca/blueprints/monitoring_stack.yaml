@@ -1,0 +1,90 @@
+tosca_definitions_version: tosca_simple_yaml_1_3
+
+description: >
+  Blueprint TOSCA décrivant la stack de monitoring DevOps.
+  Documente les composants et leurs relations pour une intégration
+  dans un orchestrateur compatible TOSCA (ex: Cloudify, OpenTOSCA).
+
+metadata:
+  template_name: devops-monitoring-stack
+  template_version: "1.0.0"
+  template_author: nasnoussa125
+
+node_types:
+
+  monitoring.nodes.PrometheusServer:
+    derived_from: tosca.nodes.Container.Application.Docker
+    properties:
+      image:
+        type: string
+        default: prom/prometheus:latest
+      port:
+        type: integer
+        default: 9090
+      config_file:
+        type: string
+        description: Chemin vers prometheus.yml
+
+  monitoring.nodes.GrafanaServer:
+    derived_from: tosca.nodes.Container.Application.Docker
+    properties:
+      image:
+        type: string
+        default: grafana/grafana:latest
+      port:
+        type: integer
+        default: 3000
+      admin_password:
+        type: string
+        description: Mot de passe admin (injecter via secret manager)
+
+  monitoring.nodes.NodeExporter:
+    derived_from: tosca.nodes.Container.Application.Docker
+    properties:
+      image:
+        type: string
+        default: prom/node-exporter:latest
+      port:
+        type: integer
+        default: 9100
+
+topology_template:
+
+  node_templates:
+
+    prometheus:
+      type: monitoring.nodes.PrometheusServer
+      properties:
+        image: prom/prometheus:latest
+        port: 9090
+        config_file: ../../prometheus.yml
+
+    grafana:
+      type: monitoring.nodes.GrafanaServer
+      properties:
+        image: grafana/grafana:latest
+        port: 3000
+        admin_password: { get_input: grafana_admin_password }
+      requirements:
+        - dependency: prometheus
+
+    node_exporter:
+      type: monitoring.nodes.NodeExporter
+      properties:
+        image: prom/node-exporter:latest
+        port: 9100
+      requirements:
+        - dependency: prometheus
+
+  inputs:
+    grafana_admin_password:
+      type: string
+      description: Mot de passe administrateur Grafana (fourni via pipeline CI)
+
+  outputs:
+    prometheus_url:
+      description: URL d'accès à Prometheus
+      value: { concat: ["http://", "localhost", ":", "9090"] }
+    grafana_url:
+      description: URL d'accès à Grafana
+      value: { concat: ["http://", "localhost", ":", "3000"] }

@@ -1,0 +1,46 @@
+# Stack "simulation d'entreprise" : application web + base de données + CI/CD
+# Stack distincte de la stack de supervision (docker-compose.yml à la racine),
+# pour éviter tout conflit de ports (Prometheus/Grafana sont gérés côté racine).
+services:
+  web-server:
+    image: nginx:alpine
+    container_name: srv-web-nginx
+    ports:
+      - "8080:80"
+    networks:
+      - production_network
+    restart: always
+
+  app-database:
+    image: postgres:15-alpine
+    container_name: srv-db-postgres
+    environment:
+      POSTGRES_DB: enterprise_db
+      POSTGRES_USER: db_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    networks:
+      - production_network
+    restart: always
+
+  jenkins:
+    build: .
+    container_name: srv-cicd-jenkins
+    user: root
+    ports:
+      - "8081:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - production_network
+    restart: always
+
+networks:
+  production_network:
+    driver: bridge
+
+volumes:
+  jenkins_data:
