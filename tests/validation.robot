@@ -22,6 +22,5 @@ EXG-05 Prometheus Expose Des Metriques CPU
     ...                Prouve que la chaîne de supervision est opérationnelle.
     [Tags]    EXG-05    validation
     Create Session    prom    ${PROMETHEUS_URL}    verify=False
-    ${resp}=    GET On Session    prom
-    ...    /api/v1/query?query=node_cpu_seconds_total    expected_status=200
+    ${resp}=    GET On Session    prom    url=/api/v1/query?query=node_cpu_seconds_total    expected_status=200
     Should Contain    ${resp.text}    node_cpu_seconds_total
