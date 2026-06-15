@@ -152,3 +152,13 @@ pour la matrice complète EXG-01 à EXG-07 (exigence → niveau → test → fic
   réel ou simulé (GNS3/EVE-NG).
 - Une stack **ELK** pour la centralisation des logs pourrait compléter
   l'observabilité (actuellement limitée à Prometheus/Grafana).
+
+## Aperçu
+
+| Prometheus — cibles détectées (EXG-03) | Grafana — accessible (EXG-04) |
+|---|---|
+| ![Prometheus targets](docs/screenshots/prometheus-targets.png) | ![Grafana home](docs/screenshots/grafana-home.png) |
+
+| Vérification (EXG-01 à 03) | Validation (EXG-04, 05) |
+|---|---|
+| ![Rapport vérification](docs/screenshots/robot-verification-report.png) | ![Rapport validation](docs/screenshots/robot-validation-report.png) |
